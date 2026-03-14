@@ -8,25 +8,27 @@ enum enQuestionLevel { Easy = 1, Med, Hard, MixQL };
 
 enum enOperationType { Add = 1, Sub, Mul, Div, MixOT };
 
-enum enFinalResult { Pass, Fail };
-
-struct stReadAnswer
+struct stReadQuestions
 {
     int firstNumber;
     int secondNumber;
-    float result;
+    float playerAnswer;
     float correctAnswer;
+    enQuestionLevel questionLevel;
     enOperationType operationType;
+
 };
 
 
 struct stFinalResult
 {
+    stReadQuestions readQuestion;
     short numberOfQuestion = 0;
     short numberOfRightQuestion = 0;
     short numberOfWrongQuestion = 0;
     enQuestionLevel questionLevel;
     enOperationType operationType;
+    bool isPass = false;
 };
 
 int readPositiveNumber(int from, int to)
@@ -89,7 +91,11 @@ string questionLevelToString(enQuestionLevel questionLevel)
 
 int questionLevel(enQuestionLevel questionLevel)
 {
-    switch (questionLevel)
+    stFinalResult finalResult;
+    if (questionLevel == enQuestionLevel::MixQL)
+        questionLevel == choiceRandomNumber(1, 3);
+    finalResult.readQuestion.questionLevel = questionLevel;
+    switch (finalResult.readQuestion.questionLevel)
     {
     case enQuestionLevel::Easy:
         return choiceRandomNumber(1, 10);
@@ -111,7 +117,13 @@ int questionLevel(enQuestionLevel questionLevel)
 
 float correctAnswer(int firstNumber, enOperationType operationType, int secondNumber)
 {
-    switch (operationType)
+    stFinalResult finalResult;
+    if (operationType == enOperationType::MixOT)
+    {
+        operationType == (enOperationType)choiceRandomNumber(1, 4);
+    }
+    finalResult.readQuestion.operationType = operationType;
+    switch (finalResult.readQuestion.operationType)
     {
     case enOperationType::Add:
         return (float)firstNumber + secondNumber;
@@ -156,41 +168,38 @@ stFinalResult firstQusetions(stFinalResult& finalResult)
     return finalResult;
 }
 
-stReadAnswer getQuestion(stReadAnswer& ReadAnswar, stFinalResult& finalResult)
+stFinalResult getQuestion(stFinalResult finalResult)
 {
-    ReadAnswar.firstNumber = questionLevel(finalResult.questionLevel);
-    ReadAnswar.secondNumber = questionLevel(finalResult.questionLevel);
-
-    if (finalResult.operationType == enOperationType::MixOT)
-        ReadAnswar.operationType = (enOperationType)choiceRandomNumber(1, 4);
-    else
-        ReadAnswar.operationType = finalResult.operationType;
-    ReadAnswar.correctAnswer = correctAnswer(ReadAnswar.firstNumber, ReadAnswar.operationType, ReadAnswar.secondNumber);
-    return ReadAnswar;
+    finalResult.readQuestion.firstNumber = questionLevel(finalResult.questionLevel);
+    finalResult.readQuestion.secondNumber = questionLevel(finalResult.questionLevel);
+    finalResult.readQuestion.correctAnswer = correctAnswer(finalResult.readQuestion.firstNumber, finalResult.readQuestion.operationType, finalResult.readQuestion.secondNumber);
+    return finalResult;
 }
 
 stFinalResult questions()
 {
     stFinalResult finalResult;
-    stReadAnswer ReadAnswar;
     firstQusetions(finalResult);
     for (int i = 1; i <= finalResult.numberOfQuestion; i++)
     {
-        getQuestion(ReadAnswar, finalResult);
+        getQuestion(finalResult);
         cout << "Question [" << i << "/" << finalResult.numberOfQuestion << "]\n\n";
-        cout << ReadAnswar.firstNumber << "\n     " << toChar(ReadAnswar.operationType) << "\n"
-            << ReadAnswar.secondNumber << "\n__________\n";
-        ReadAnswar.result = readAnswer();
-        showFinalResult(finalResult, ReadAnswar.correctAnswer, ReadAnswar.result);
+        cout << finalResult.readQuestion.firstNumber << "\n     " << toChar(finalResult.readQuestion.operationType) << "\n"
+            << finalResult.readQuestion.secondNumber << "\n__________\n";
+
+        finalResult.readQuestion.playerAnswer = readAnswer();
+        showFinalResult(finalResult, finalResult.readQuestion.correctAnswer, finalResult.readQuestion.playerAnswer);
         cout << "\n\n";
     }
+    if (finalResult.numberOfRightQuestion >= finalResult.numberOfWrongQuestion)
+        finalResult.isPass = true;
     return finalResult;
 }
 
 void printResult(stFinalResult finalResult)
 {
     cout << "__________________________\n";
-    if (finalResult.numberOfRightQuestion >= finalResult.numberOfWrongQuestion)
+    if (finalResult.isPass)
     {
         system("color 2F");
         cout << "Final Result is PASS\n";
