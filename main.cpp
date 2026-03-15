@@ -152,12 +152,14 @@ stFinalResult printQuestion(stReadQuestion& readQuestion, stFinalResult& finalRe
 {
     getQuestion(readQuestion, finalResult);
     cout << "Question [" << i << "/" << finalResult.numberOfQuestion << "]\n\n";
-    cout << readQuestion.firstNumber << "\n     " << toChar(readQuestion.operationType) << "\n"
-        << readQuestion.secondNumber << "\n__________\n";
+    cout << readQuestion.firstNumber << "\n     " << toChar(readQuestion.operationType) << "\n";
+    cout << readQuestion.secondNumber << "\n__________\n";
+
     readQuestion.userAnswer = readAnswer();
     readQuestion.isCorrectAnswer = readQuestion.correctAnswer == readQuestion.userAnswer;
     showFinalResult(finalResult, readQuestion);
     cout << "\n\n";
+
     return finalResult;
 }
 
@@ -215,7 +217,6 @@ void startQuestions()
         cout << "\nDo you want to play again? (y)yes (n)no? ";
         cin >> ch;
     } while (ch == 'y' || ch == 'Y');
-
 }
 
 int main()
