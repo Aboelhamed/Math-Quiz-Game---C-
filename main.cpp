@@ -8,17 +8,15 @@ enum enQuestionLevel { Easy = 1, Med, Hard, MixQL };
 
 enum enOperationType { Add = 1, Sub, Mul, Div, MixOT };
 
-enum enFinalResult { Pass, Fail };
-
-struct stReadAnswer
+struct stReadQuestion
 {
     int firstNumber;
     int secondNumber;
-    float result;
+    float userAnswer;
     float correctAnswer;
     enOperationType operationType;
+    bool isCorrectAnswer = false;
 };
-
 
 struct stFinalResult
 {
@@ -92,21 +90,11 @@ int questionLevel(enQuestionLevel questionLevel)
 {
     switch (questionLevel)
     {
-    case enQuestionLevel::Easy:
-        return choiceRandomNumber(1, 10);
-        break;
-    case enQuestionLevel::Med:
-        return choiceRandomNumber(20, 50);
-        break;
-    case enQuestionLevel::Hard:
-        return choiceRandomNumber(50, 100);
-        break;
-    case enQuestionLevel::MixQL:
-        return choiceRandomNumber(1, 100);
-        break;
-
-    default:
-        break;
+    case enQuestionLevel::Easy: return choiceRandomNumber(1, 10);
+    case enQuestionLevel::Med: return choiceRandomNumber(20, 50);
+    case enQuestionLevel::Hard: return choiceRandomNumber(50, 100);
+    case enQuestionLevel::MixQL: return choiceRandomNumber(1, 100);
+    default: return 0;
     }
 }
 
@@ -114,27 +102,17 @@ float correctAnswer(int firstNumber, enOperationType operationType, int secondNu
 {
     switch (operationType)
     {
-    case enOperationType::Add:
-        return (float)firstNumber + secondNumber;
-        break;
-    case enOperationType::Sub:
-        return (float)firstNumber - secondNumber;
-        break;
-    case enOperationType::Mul:
-        return (float)firstNumber * secondNumber;
-        break;
-    case enOperationType::Div:
-        return ((float)firstNumber / secondNumber);
-        break;
-
-    default:
-        break;
+    case enOperationType::Add: return (float)firstNumber + secondNumber;
+    case enOperationType::Sub: return (float)firstNumber - secondNumber;
+    case enOperationType::Mul: return (float)firstNumber * secondNumber;
+    case enOperationType::Div: return ((float)firstNumber / secondNumber);
+    default: return 0;
     }
 }
 
-stFinalResult showFinalResult(stFinalResult& finalResult, float correctAnswer, float userAnswer)
+stFinalResult showFinalResult(stFinalResult& finalResult, stReadQuestion readQuestion)
 {
-    if (correctAnswer == userAnswer)
+    if (readQuestion.isCorrectAnswer)
     {
         cout << "Right Answer \n";
         finalResult.numberOfRightQuestion++;
@@ -142,7 +120,7 @@ stFinalResult showFinalResult(stFinalResult& finalResult, float correctAnswer, f
     else
     {
         cout << "Wrong Answer \n";
-        cout << "The Right Answer is : " << correctAnswer << endl;
+        cout << "The Right Answer is : " << readQuestion.correctAnswer << endl;
         finalResult.numberOfWrongQuestion++;
     }
     return finalResult;
@@ -157,36 +135,42 @@ stFinalResult firstQusetions(stFinalResult& finalResult)
     return finalResult;
 }
 
-stReadAnswer getQuestion(stReadAnswer& ReadAnswar, stFinalResult& finalResult)
+stReadQuestion getQuestion(stReadQuestion& readQuestion, stFinalResult& finalResult)
 {
-    ReadAnswar.firstNumber = questionLevel(finalResult.questionLevel);
-    ReadAnswar.secondNumber = questionLevel(finalResult.questionLevel);
+    readQuestion.firstNumber = questionLevel(finalResult.questionLevel);
+    readQuestion.secondNumber = questionLevel(finalResult.questionLevel);
 
-    ReadAnswar.operationType = finalResult.operationType;
+    readQuestion.operationType = finalResult.operationType;
     if (finalResult.operationType == enOperationType::MixOT)
-        ReadAnswar.operationType = (enOperationType)choiceRandomNumber(1, 4);
+        readQuestion.operationType = (enOperationType)choiceRandomNumber(1, 4);
 
-    ReadAnswar.correctAnswer = correctAnswer(ReadAnswar.firstNumber, ReadAnswar.operationType, ReadAnswar.secondNumber);
-    return ReadAnswar;
+    readQuestion.correctAnswer = correctAnswer(readQuestion.firstNumber, readQuestion.operationType, readQuestion.secondNumber);
+    return readQuestion;
+}
+
+stFinalResult printQuestion(stReadQuestion& readQuestion, stFinalResult& finalResult, int i)
+{
+    getQuestion(readQuestion, finalResult);
+    cout << "Question [" << i << "/" << finalResult.numberOfQuestion << "]\n\n";
+    cout << readQuestion.firstNumber << "\n     " << toChar(readQuestion.operationType) << "\n"
+        << readQuestion.secondNumber << "\n__________\n";
+    readQuestion.userAnswer = readAnswer();
+    readQuestion.isCorrectAnswer = readQuestion.correctAnswer == readQuestion.userAnswer;
+    showFinalResult(finalResult, readQuestion);
+    cout << "\n\n";
+    return finalResult;
 }
 
 stFinalResult questions()
 {
     stFinalResult finalResult;
-    stReadAnswer ReadAnswar;
+    stReadQuestion readQuestion;
     firstQusetions(finalResult);
     for (int i = 1; i <= finalResult.numberOfQuestion; i++)
     {
-        getQuestion(ReadAnswar, finalResult);
-        cout << "Question [" << i << "/" << finalResult.numberOfQuestion << "]\n\n";
-        cout << ReadAnswar.firstNumber << "\n     " << toChar(ReadAnswar.operationType) << "\n"
-            << ReadAnswar.secondNumber << "\n__________\n";
-        ReadAnswar.result = readAnswer();
-        showFinalResult(finalResult, ReadAnswar.correctAnswer, ReadAnswar.result);
-        cout << "\n\n";
+        printQuestion(readQuestion, finalResult, i);
     }
-    if (finalResult.numberOfRightQuestion >= finalResult.numberOfWrongQuestion)
-        finalResult.isPass = true;
+    finalResult.isPass = finalResult.numberOfRightQuestion >= finalResult.numberOfWrongQuestion;
 
     return finalResult;
 }
@@ -214,13 +198,18 @@ void printResult(stFinalResult finalResult)
     cout << "Number of Wrong Answer : " << finalResult.numberOfWrongQuestion << endl;
 }
 
+void clearScreen()
+{
+    system("cls");
+    system("color 0F");
+}
+
 void startQuestions()
 {
     stFinalResult finalResult;
     char ch;
     do {
-        system("cls");
-        system("color 0F");
+        clearScreen();
         finalResult = questions();
         printResult(finalResult);
         cout << "\nDo you want to play again? (y)yes (n)no? ";
