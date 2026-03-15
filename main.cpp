@@ -8,21 +8,20 @@ enum enQuestionLevel { Easy = 1, Med, Hard, MixQL };
 
 enum enOperationType { Add = 1, Sub, Mul, Div, MixOT };
 
-struct stReadQuestions
+enum enFinalResult { Pass, Fail };
+
+struct stReadAnswer
 {
     int firstNumber;
     int secondNumber;
-    float playerAnswer;
+    float result;
     float correctAnswer;
-    enQuestionLevel questionLevel;
     enOperationType operationType;
-
 };
 
 
 struct stFinalResult
 {
-    stReadQuestions readQuestion;
     short numberOfQuestion = 0;
     short numberOfRightQuestion = 0;
     short numberOfWrongQuestion = 0;
@@ -91,11 +90,7 @@ string questionLevelToString(enQuestionLevel questionLevel)
 
 int questionLevel(enQuestionLevel questionLevel)
 {
-    stFinalResult finalResult;
-    if (questionLevel == enQuestionLevel::MixQL)
-        questionLevel == choiceRandomNumber(1, 3);
-    finalResult.readQuestion.questionLevel = questionLevel;
-    switch (finalResult.readQuestion.questionLevel)
+    switch (questionLevel)
     {
     case enQuestionLevel::Easy:
         return choiceRandomNumber(1, 10);
@@ -117,13 +112,7 @@ int questionLevel(enQuestionLevel questionLevel)
 
 float correctAnswer(int firstNumber, enOperationType operationType, int secondNumber)
 {
-    stFinalResult finalResult;
-    if (operationType == enOperationType::MixOT)
-    {
-        operationType == (enOperationType)choiceRandomNumber(1, 4);
-    }
-    finalResult.readQuestion.operationType = operationType;
-    switch (finalResult.readQuestion.operationType)
+    switch (operationType)
     {
     case enOperationType::Add:
         return (float)firstNumber + secondNumber;
@@ -168,31 +157,37 @@ stFinalResult firstQusetions(stFinalResult& finalResult)
     return finalResult;
 }
 
-stFinalResult getQuestion(stFinalResult finalResult)
+stReadAnswer getQuestion(stReadAnswer& ReadAnswar, stFinalResult& finalResult)
 {
-    finalResult.readQuestion.firstNumber = questionLevel(finalResult.questionLevel);
-    finalResult.readQuestion.secondNumber = questionLevel(finalResult.questionLevel);
-    finalResult.readQuestion.correctAnswer = correctAnswer(finalResult.readQuestion.firstNumber, finalResult.readQuestion.operationType, finalResult.readQuestion.secondNumber);
-    return finalResult;
+    ReadAnswar.firstNumber = questionLevel(finalResult.questionLevel);
+    ReadAnswar.secondNumber = questionLevel(finalResult.questionLevel);
+
+    ReadAnswar.operationType = finalResult.operationType;
+    if (finalResult.operationType == enOperationType::MixOT)
+        ReadAnswar.operationType = (enOperationType)choiceRandomNumber(1, 4);
+
+    ReadAnswar.correctAnswer = correctAnswer(ReadAnswar.firstNumber, ReadAnswar.operationType, ReadAnswar.secondNumber);
+    return ReadAnswar;
 }
 
 stFinalResult questions()
 {
     stFinalResult finalResult;
+    stReadAnswer ReadAnswar;
     firstQusetions(finalResult);
     for (int i = 1; i <= finalResult.numberOfQuestion; i++)
     {
-        getQuestion(finalResult);
+        getQuestion(ReadAnswar, finalResult);
         cout << "Question [" << i << "/" << finalResult.numberOfQuestion << "]\n\n";
-        cout << finalResult.readQuestion.firstNumber << "\n     " << toChar(finalResult.readQuestion.operationType) << "\n"
-            << finalResult.readQuestion.secondNumber << "\n__________\n";
-
-        finalResult.readQuestion.playerAnswer = readAnswer();
-        showFinalResult(finalResult, finalResult.readQuestion.correctAnswer, finalResult.readQuestion.playerAnswer);
+        cout << ReadAnswar.firstNumber << "\n     " << toChar(ReadAnswar.operationType) << "\n"
+            << ReadAnswar.secondNumber << "\n__________\n";
+        ReadAnswar.result = readAnswer();
+        showFinalResult(finalResult, ReadAnswar.correctAnswer, ReadAnswar.result);
         cout << "\n\n";
     }
     if (finalResult.numberOfRightQuestion >= finalResult.numberOfWrongQuestion)
         finalResult.isPass = true;
+
     return finalResult;
 }
 
